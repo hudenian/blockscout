@@ -64,7 +64,8 @@ defmodule Explorer.Chain do
     TokenTransfer,
     Transaction,
     Wei,
-    Withdrawal
+    Withdrawal,
+    L2Validator
   }
 
   alias Explorer.Chain.Block.{EmissionReward, Reward}
@@ -6429,4 +6430,21 @@ defmodule Explorer.Chain do
   def default_paging_options do
     @default_paging_options
   end
+
+
+  @doc """
+  简单获取验证人,返回值需要指定（待处理）
+  """
+  @spec list_l2Validators([paging_options | necessity_by_association_option | api?]) :: []
+  def list_l2Validators(options \\ [])  do
+    fetch_L2Validators(options)
+  end
+
+
+  defp fetch_L2Validators(options) do
+    L2Validator
+    |> select_repo(options).all()
+  end
+
+
 end

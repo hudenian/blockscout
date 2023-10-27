@@ -33,7 +33,7 @@ defmodule BlockScoutWeb.ApiRouter do
   pipeline :api_v2 do
     plug(BlockScoutWeb.Plug.Logger, application: :api_v2)
     plug(:accepts, ["json"])
-    plug(CheckApiV2)
+#    plug(CheckApiV2)  #先不校验
     plug(:fetch_session)
     plug(:protect_from_forgery)
     plug(RateLimit)
@@ -252,6 +252,10 @@ defmodule BlockScoutWeb.ApiRouter do
       get("/:address_hash_param/instances/:token_id/transfers", V2.TokenController, :transfers_by_instance)
       get("/:address_hash_param/instances/:token_id/holders", V2.TokenController, :holders_by_instance)
       get("/:address_hash_param/instances/:token_id/transfers-count", V2.TokenController, :transfers_count_by_instance)
+    end
+
+    scope "/validators" do
+      get("/", V2.L2ValidatorController, :validators)
     end
 
     scope "/main-page" do

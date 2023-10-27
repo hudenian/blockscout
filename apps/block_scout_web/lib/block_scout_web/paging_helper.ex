@@ -115,6 +115,42 @@ defmodule BlockScoutWeb.PagingHelper do
     end
   end
 
+  def select_validator_status(%{"status" => status}) do
+    case String.downcase(status) do
+      "active" ->
+        [
+          necessity_by_association: %{
+            :transactions => :optional,
+            [miner: :names] => :optional,
+            :rewards => :optional
+          },
+          validator_type: "Active"
+        ]
+      "candidate" ->
+        [
+          necessity_by_association: %{
+            :transactions => :optional,
+            [miner: :names] => :optional,
+            :rewards => :optional
+          },
+          validator_type: "Candidate"
+        ]
+
+      _ ->
+        select_validator_type(nil)
+    end
+  end
+
+  def select_validator_type(_),
+      do: [
+        necessity_by_association: %{
+          :transactions => :optional,
+          [miner: :names] => :optional,
+          :rewards => :optional
+        },
+        validator_type: "All"
+      ]
+
   def select_block_type(_),
     do: [
       necessity_by_association: %{
