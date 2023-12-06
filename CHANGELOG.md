@@ -10,6 +10,7 @@
 
 ### Fixes
 
+- [#8955](https://github.com/blockscout/blockscout/pull/8955) - Add default match for new param in CoinBalanceDailyUpdater
 - [#8924](https://github.com/blockscout/blockscout/pull/8924) - Delete invalid current token balances in OnDemand fetcher
 - [#8922](https://github.com/blockscout/blockscout/pull/8922) - Allow call type to be in lowercase
 - [#8917](https://github.com/blockscout/blockscout/pull/8917) - Proxy detection hotfix in API v2

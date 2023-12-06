@@ -37,6 +37,8 @@ defmodule Indexer.Fetcher.CoinBalanceDailyUpdater do
     end)
   end
 
+  defp put_new_param(_param, acc), do: acc
+
   @impl true
   def handle_info(:update, state) when state == %{} do
     schedule_next_update()
