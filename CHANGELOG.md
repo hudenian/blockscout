@@ -5,6 +5,7 @@
 ### Features
 
 - [#8966](https://github.com/blockscout/blockscout/pull/8966) - Add `ACCOUNT_WATCHLIST_NOTIFICATIONS_LIMIT_FOR_30_DAYS`
+- [#8960](https://github.com/blockscout/blockscout/pull/8960) - TRACE_BLOCK_RANGES env var
 
 ### Fixes
 
