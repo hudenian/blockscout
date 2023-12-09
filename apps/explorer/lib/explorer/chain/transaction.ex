@@ -1563,7 +1563,10 @@ defmodule Explorer.Chain.Transaction do
   def page_transaction(query, %PagingOptions{is_pending_tx: true} = options),
     do: page_pending_transaction(query, options)
 
-  def page_transaction(query, %PagingOptions{key: {block_number, index}, is_index_in_asc_order: true}) do
+  def page_transaction(query, %PagingOptions{
+        key: %{block_number: block_number, index: index},
+        is_index_in_asc_order: true
+      }) do
     where(
       query,
       [transaction],
@@ -1572,7 +1575,7 @@ defmodule Explorer.Chain.Transaction do
     )
   end
 
-  def page_transaction(query, %PagingOptions{key: {block_number, index}}) do
+  def page_transaction(query, %PagingOptions{key: %{block_number: block_number, index: index}}) do
     where(
       query,
       [transaction],
@@ -1591,7 +1594,7 @@ defmodule Explorer.Chain.Transaction do
   @spec page_pending_transaction(Ecto.Query.t() | atom, Explorer.PagingOptions.t()) :: Ecto.Query.t()
   def page_pending_transaction(query, %PagingOptions{key: nil}), do: query
 
-  def page_pending_transaction(query, %PagingOptions{key: {inserted_at, hash}}) do
+  def page_pending_transaction(query, %PagingOptions{key: %{inserted_at: inserted_at, hash: hash}}) do
     where(
       query,
       [transaction],

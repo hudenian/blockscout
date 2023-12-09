@@ -247,7 +247,7 @@ defmodule BlockScoutWeb.Chain do
 
   def paging_options(%{
         "block_number" => block_number_string,
-        "index" => index_string,
+        "log_index" => index_string,
         "batch_log_index" => batch_log_index_string,
         "batch_block_hash" => batch_block_hash_string,
         "batch_transaction_hash" => batch_transaction_hash_string,
@@ -299,11 +299,22 @@ defmodule BlockScoutWeb.Chain do
     end
   end
 
-  def paging_options(%{"block_number" => block_number_string, "index" => index_string})
+  def paging_options(%{"block_number" => block_number_string, "log_index" => index_string})
       when is_binary(block_number_string) and is_binary(index_string) do
     with {block_number, ""} <- Integer.parse(block_number_string),
          {index, ""} <- Integer.parse(index_string) do
       [paging_options: %{@default_paging_options | key: {block_number, index}}]
+    else
+      _ ->
+        [paging_options: @default_paging_options]
+    end
+  end
+
+  def paging_options(%{"block_number" => block_number_string, "index" => index_string})
+      when is_binary(block_number_string) and is_binary(index_string) do
+    with {block_number, ""} <- Integer.parse(block_number_string),
+         {index, ""} <- Integer.parse(index_string) do
+      [paging_options: %{@default_paging_options | key: %{block_number: block_number, index: index}}]
     else
       _ ->
         [paging_options: @default_paging_options]
@@ -352,7 +363,7 @@ defmodule BlockScoutWeb.Chain do
       when is_binary(inserted_at_string) and is_binary(hash_string) do
     with {:ok, inserted_at, _} <- DateTime.from_iso8601(inserted_at_string),
          {:ok, hash} <- string_to_transaction_hash(hash_string) do
-      [paging_options: %{@default_paging_options | key: {inserted_at, hash}, is_pending_tx: true}]
+      [paging_options: %{@default_paging_options | key: %{inserted_at: inserted_at, hash: hash}, is_pending_tx: true}]
     else
       _ ->
         [paging_options: @default_paging_options]
@@ -562,7 +573,7 @@ defmodule BlockScoutWeb.Chain do
   end
 
   defp paging_params(%Log{index: index, block_number: block_number}) do
-    %{"block_number" => block_number, "index" => index}
+    %{"block_number" => block_number, "log_index" => index}
   end
 
   defp paging_params(%Transaction{block_number: nil, inserted_at: inserted_at, hash: hash}) do
@@ -574,7 +585,7 @@ defmodule BlockScoutWeb.Chain do
   end
 
   defp paging_params(%TokenTransfer{block_number: block_number, log_index: index}) do
-    %{"block_number" => block_number, "index" => index}
+    %{"block_number" => block_number, "log_index" => index}
   end
 
   defp paging_params(%Address.Token{name: name, type: type, inserted_at: inserted_at}) do

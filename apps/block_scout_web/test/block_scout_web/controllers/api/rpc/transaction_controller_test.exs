@@ -458,7 +458,7 @@ defmodule BlockScoutWeb.API.RPC.TransactionControllerTest do
 
       assert %{
                "action" => "gettxinfo",
-               "index" => _,
+               "log_index" => _,
                "module" => "transaction",
                "txhash" => _
              } = response1["result"]["next_page_params"]

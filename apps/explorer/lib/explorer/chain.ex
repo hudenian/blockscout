@@ -2520,7 +2520,7 @@ defmodule Explorer.Chain do
 
       iex> newest_first_transactions = 50 |> insert_list(:transaction) |> with_block() |> Enum.reverse()
       iex> oldest_seen = Enum.at(newest_first_transactions, 9)
-      iex> paging_options = %Explorer.PagingOptions{page_size: 10, key: {oldest_seen.block_number, oldest_seen.index}}
+      iex> paging_options = %Explorer.PagingOptions{page_size: 10, key: %{block_number: oldest_seen.block_number, index: oldest_seen.index}}
       iex> recent_collated_transactions = Explorer.Chain.recent_collated_transactions(true, paging_options: paging_options)
       iex> length(recent_collated_transactions)
       10
@@ -3418,11 +3418,11 @@ defmodule Explorer.Chain do
 
   defp page_block_transactions(query, %PagingOptions{key: nil}), do: query
 
-  defp page_block_transactions(query, %PagingOptions{key: {_block_number, index}, is_index_in_asc_order: true}) do
+  defp page_block_transactions(query, %PagingOptions{key: %{index: index}, is_index_in_asc_order: true}) do
     where(query, [transaction], transaction.index > ^index)
   end
 
-  defp page_block_transactions(query, %PagingOptions{key: {_block_number, index}}) do
+  defp page_block_transactions(query, %PagingOptions{key: %{index: index}}) do
     where(query, [transaction], transaction.index < ^index)
   end
 

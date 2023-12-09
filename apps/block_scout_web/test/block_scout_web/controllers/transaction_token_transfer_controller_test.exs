@@ -90,7 +90,7 @@ defmodule BlockScoutWeb.TransactionTokenTransferControllerTest do
       conn =
         get(conn, transaction_token_transfer_path(BlockScoutWeb.Endpoint, :index, transaction.hash), %{
           "block_number" => "1000",
-          "index" => "1",
+          "log_index" => "1",
           "type" => "JSON"
         })
 

@@ -446,7 +446,9 @@ defmodule Explorer.ChainTest do
 
       assert second_page_hashes ==
                block.hash
-               |> Chain.block_to_transactions(paging_options: %PagingOptions{key: {block.number, index}, page_size: 50})
+               |> Chain.block_to_transactions(
+                 paging_options: %PagingOptions{key: %{block_number: block.number, index: index}, page_size: 50}
+               )
                |> Enum.map(& &1.hash)
     end
 
@@ -2151,7 +2153,7 @@ defmodule Explorer.ChainTest do
       %Transaction{inserted_at: inserted_at, hash: hash} = insert(:transaction)
 
       assert second_page_hashes ==
-               [paging_options: %PagingOptions{key: {inserted_at, hash}, page_size: 50}]
+               [paging_options: %PagingOptions{key: %{inserted_at: inserted_at, hash: hash}, page_size: 50}]
                |> Chain.recent_pending_transactions()
                |> Enum.map(& &1.hash)
                |> Enum.reverse()
@@ -3362,7 +3364,12 @@ defmodule Explorer.ChainTest do
         |> Enum.reverse()
 
       oldest_seen = Enum.at(newest_first_transactions, 9)
-      paging_options = %Explorer.PagingOptions{page_size: 10, key: {oldest_seen.block_number, oldest_seen.index}}
+
+      paging_options = %Explorer.PagingOptions{
+        page_size: 10,
+        key: %{block_number: oldest_seen.block_number, index: oldest_seen.index}
+      }
+
       recent_collated_transactions = Explorer.Chain.recent_collated_transactions(true, paging_options: paging_options)
 
       assert length(recent_collated_transactions) == 10
@@ -4337,7 +4344,7 @@ defmodule Explorer.ChainTest do
       )
 
       paging_options = %PagingOptions{
-        key: {first_page.block_number, first_page.index},
+        key: %{block_number: first_page.block_number, index: first_page.index},
         page_size: 2
       }
 

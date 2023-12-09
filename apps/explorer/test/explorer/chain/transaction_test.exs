@@ -549,7 +549,7 @@ defmodule Explorer.Chain.TransactionTest do
                address_hash
                |> Transaction.address_to_transactions_with_rewards(
                  paging_options: %PagingOptions{
-                   key: {block_number, index},
+                   key: %{block_number: block_number, index: index},
                    page_size: 2
                  }
                )

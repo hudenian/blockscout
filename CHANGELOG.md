@@ -8,6 +8,8 @@
 
 ### Fixes
 
+- [#8969](https://github.com/blockscout/blockscout/pull/8969) - Support legacy paging options for address transaction endpoint
+
 ### Chore
 
 - [#8956](https://github.com/blockscout/blockscout/pull/8956) - Refine docker-compose config structure

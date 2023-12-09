@@ -16,7 +16,7 @@ defmodule BlockScoutWeb.PagingHelper do
   def paging_options(%{"block_number" => block_number_string, "index" => index_string}, [:validated | _]) do
     with {block_number, ""} <- Integer.parse(block_number_string),
          {index, ""} <- Integer.parse(index_string) do
-      [paging_options: %{@default_paging_options | key: {block_number, index}}]
+      [paging_options: %{@default_paging_options | key: %{block_number: block_number, index: index}}]
     else
       _ ->
         [paging_options: @default_paging_options]
@@ -26,7 +26,7 @@ defmodule BlockScoutWeb.PagingHelper do
   def paging_options(%{"inserted_at" => inserted_at_string, "hash" => hash_string}, [:pending | _]) do
     with {:ok, inserted_at, _} <- DateTime.from_iso8601(inserted_at_string),
          {:ok, hash} <- string_to_transaction_hash(hash_string) do
-      [paging_options: %{@default_paging_options | key: {inserted_at, hash}, is_pending_tx: true}]
+      [paging_options: %{@default_paging_options | key: %{inserted_at: inserted_at, hash: hash}, is_pending_tx: true}]
     else
       _ ->
         [paging_options: @default_paging_options]
