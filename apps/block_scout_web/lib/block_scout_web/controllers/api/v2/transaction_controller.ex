@@ -22,6 +22,8 @@ defmodule BlockScoutWeb.API.V2.TransactionController do
       type_filter_options: 1
     ]
 
+  import Explorer.MicroserviceInterfaces.BENS, only: [maybe_preload_ens: 1]
+
   alias BlockScoutWeb.AccessHelper
   alias BlockScoutWeb.Models.TransactionStateHelper
   alias Explorer.Chain
@@ -137,7 +139,7 @@ defmodule BlockScoutWeb.API.V2.TransactionController do
 
     conn
     |> put_status(200)
-    |> render(:transactions, %{transactions: transactions, next_page_params: next_page_params})
+    |> render(:transactions, %{transactions: transactions |> maybe_preload_ens(), next_page_params: next_page_params})
   end
 
   @doc """
@@ -154,7 +156,7 @@ defmodule BlockScoutWeb.API.V2.TransactionController do
 
     conn
     |> put_status(200)
-    |> render(:transactions, %{transactions: transactions, items: true})
+    |> render(:transactions, %{transactions: transactions|> maybe_preload_ens(), items: true})
   end
 
   def execution_node(conn, %{"execution_node_hash_param" => execution_node_hash_string} = params) do
@@ -174,7 +176,7 @@ defmodule BlockScoutWeb.API.V2.TransactionController do
 
       conn
       |> put_status(200)
-      |> render(:transactions, %{transactions: transactions, next_page_params: next_page_params})
+      |> render(:transactions, %{transactions: transactions|> maybe_preload_ens(), next_page_params: next_page_params})
     end
   end
 
@@ -243,7 +245,10 @@ defmodule BlockScoutWeb.API.V2.TransactionController do
 
       conn
       |> put_status(200)
-      |> render(:token_transfers, %{token_transfers: token_transfers, next_page_params: next_page_params})
+      |> render(:token_transfers, %{
+        token_transfers: token_transfers |> maybe_preload_ens(),
+        next_page_params: next_page_params
+      })
     end
   end
 
@@ -273,7 +278,7 @@ defmodule BlockScoutWeb.API.V2.TransactionController do
       conn
       |> put_status(200)
       |> render(:internal_transactions, %{
-        internal_transactions: internal_transactions,
+        internal_transactions: internal_transactions |> maybe_preload_ens(),
         next_page_params: next_page_params
       })
     end
@@ -312,7 +317,7 @@ defmodule BlockScoutWeb.API.V2.TransactionController do
       |> put_status(200)
       |> render(:logs, %{
         tx_hash: transaction_hash,
-        logs: logs,
+        logs: logs |> maybe_preload_ens(),
         next_page_params: next_page_params
       })
     end
@@ -370,7 +375,7 @@ defmodule BlockScoutWeb.API.V2.TransactionController do
       conn
       |> put_status(200)
       |> render(:transactions_watchlist, %{
-        transactions: transactions,
+        transactions: transactions |> maybe_preload_ens(),
         next_page_params: next_page_params,
         watchlist_names: watchlist_names
       })
