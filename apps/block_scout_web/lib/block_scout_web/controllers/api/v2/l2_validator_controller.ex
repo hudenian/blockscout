@@ -57,7 +57,9 @@ defmodule BlockScoutWeb.API.V2.L2ValidatorController do
 
     {validators, next_page} = split_list_by_page(l2_validators_plus_one)
 
-    next_page_params = next_page |> next_page_params(validators, delete_parameters_from_next_page_params(params))
+    # 组装下个分布信息
+#    next_page_params = next_page |> next_page_params(validators, delete_parameters_from_next_page_params(params))
+    next_page_params = next_page
 
     conn
     |> put_status(200)

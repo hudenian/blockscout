@@ -32,8 +32,9 @@ defmodule Explorer.Chain.Import.Stage do
           {[Multi.t()], runner_to_changes_list}
   def chunk_every(runner_to_changes_list, runner, chunk_size, options)
       when is_map(runner_to_changes_list) and is_atom(runner) and is_integer(chunk_size) and is_map(options) do
+    # runner_to_changes_list取出键为runner的项，如果键存在，返回包含两个元素的元组，changes_list 是键为runner对应的值，第二个元素移除键为runner对应的项
     {changes_list, unstaged_runner_to_changes_list} = Map.pop(runner_to_changes_list, runner)
-    multis = changes_list_chunk_every(changes_list, chunk_size, runner, options)
+    multis = changes_list_chunk_every(changes_list, chunk_size, runner, options) #把大的changes_list分成多个
 
     {multis, unstaged_runner_to_changes_list}
   end

@@ -34,7 +34,8 @@ defmodule Indexer.Supervisor do
     TokenUpdater,
     TransactionAction,
     UncleBlock,
-    Withdrawal
+    Withdrawal,
+    L2Validator
   }
 
   alias Indexer.Fetcher.Zkevm.TransactionBatch
@@ -162,7 +163,8 @@ defmodule Indexer.Supervisor do
            %{block_fetcher: block_fetcher, block_interval: block_interval, memory_monitor: memory_monitor},
            [name: BlockCatchup.Supervisor]
          ]},
-        {Withdrawal.Supervisor, [[json_rpc_named_arguments: json_rpc_named_arguments]]}
+        {Withdrawal.Supervisor, [[json_rpc_named_arguments: json_rpc_named_arguments]]},
+        {L2Validator, [[]]}
       ]
       |> List.flatten()
 

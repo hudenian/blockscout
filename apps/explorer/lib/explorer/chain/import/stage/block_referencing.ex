@@ -16,7 +16,8 @@ defmodule Explorer.Chain.Import.Stage.BlockReferencing do
     Runner.TokenTransfers,
     Runner.Address.TokenBalances,
     Runner.TransactionActions,
-    Runner.Withdrawals
+    Runner.Withdrawals,
+    Runner.L2Validators
   ]
 
   @impl Stage

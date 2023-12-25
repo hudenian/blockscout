@@ -11,6 +11,7 @@ defmodule Explorer.Chain.Import do
 
   require Logger
 
+  # 数据导入不同阶段处理
   @stages [
     Import.Stage.Addresses,
     Import.Stage.AddressReferencing,
@@ -129,8 +130,8 @@ defmodule Explorer.Chain.Import do
          {:ok, valid_runner_option_pairs} <- validate_runner_options_pairs(runner_options_pairs),
          {:ok, runner_to_changes_list} <- runner_to_changes_list(valid_runner_option_pairs),
          {:ok, data} <- insert_runner_to_changes_list(runner_to_changes_list, options) do
-      Notify.async(data[:transactions])
-      Publisher.broadcast(data, Map.get(options, :broadcast, false))
+      Notify.async(data[:transactions]) # 监听需要监控的地址列表，异步发邮件通过
+      Publisher.broadcast(data, Map.get(options, :broadcast, false)) # 发布消息
       {:ok, data}
     end
   end
@@ -138,7 +139,7 @@ defmodule Explorer.Chain.Import do
   defp runner_to_changes_list(runner_options_pairs) when is_list(runner_options_pairs) do
     runner_options_pairs
     |> Stream.map(fn {runner, options} -> runner_changes_list(runner, options) end)
-    |> Enum.reduce({:ok, %{}}, fn
+    |> Enum.reduce({:ok, %{}}, fn  # {:ok, %{}} 为初始值
       {:ok, {runner, changes_list}}, {:ok, acc_runner_to_changes_list} ->
         {:ok, Map.put(acc_runner_to_changes_list, runner, changes_list)}
 
@@ -154,9 +155,9 @@ defmodule Explorer.Chain.Import do
   end
 
   defp runner_changes_list(runner, %{params: params} = options) do
-    ecto_schema_module = runner.ecto_schema_module()
-    changeset_function_name = Map.get(options, :with, :changeset)
-    struct = ecto_schema_module.__struct__()
+    ecto_schema_module = runner.ecto_schema_module() # 获取模块schema
+    changeset_function_name = Map.get(options, :with, :changeset) #处理变更集的函数名，默认是changeset
+    struct = ecto_schema_module.__struct__() # 获取结构体
 
     params
     |> Stream.map(&apply(ecto_schema_module, changeset_function_name, [struct, &1]))
@@ -185,23 +186,27 @@ defmodule Explorer.Chain.Import do
   @global_options ~w(broadcast timeout)a
 
   defp validate_options(options) when is_map(options) do
+    # 除去全局选项 broadcast timeout
     local_options = Map.drop(options, @global_options)
 
+    # 遍历@runners  初始值是{[], local_options}  unknown_options表示runner中不能处理的options，默认是传入的所有options,当options在runners中能找到说明可以匹配
+    #
     {reverse_runner_options_pairs, unknown_options} =
       Enum.reduce(@runners, {[], local_options}, fn runner, {acc_runner_options_pairs, unknown_options} = acc ->
         option_key = runner.option_key()
 
         case local_options do
-          %{^option_key => option_value} ->
-            {[{runner, option_value} | acc_runner_options_pairs], Map.delete(unknown_options, option_key)}
+          %{^option_key => option_value} ->  # 模式匹配，看local_options是否与runer中的option_key匹配，如果匹配做下面操作
+            {[{runner, option_value} | acc_runner_options_pairs], Map.delete(unknown_options, option_key)} # 把runner及对应处理值option_value组成一个元组添加到acc_runner_options_pairs头部,并从未知的unknown_options中删除
 
           _ ->
-            acc
+            acc  #最终返回值 里面包含{acc_runner_options_pairs, unknown_options}
         end
       end)
 
+    # 判断unknown_options 是否为空（为空说明所有的options有对应的runner处理，校验通过）， true 与false分别返回对应的值
     case Enum.empty?(unknown_options) do
-      true -> {:ok, Enum.reverse(reverse_runner_options_pairs)}
+      true -> {:ok, Enum.reverse(reverse_runner_options_pairs)} #之前添加到头部，现在进行反转
       false -> {:error, {:unknown_options, unknown_options}}
     end
   end
@@ -210,19 +215,23 @@ defmodule Explorer.Chain.Import do
     {status, reversed} =
       runner_options_pairs
       |> Stream.map(fn {runner, options} -> validate_runner_options(runner, options) end)
-      |> Enum.reduce({:ok, []}, fn
+      |> Enum.reduce({:ok, []}, fn  #初始值是{:ok, []}
+        # 表示不进行校验
         :ignore, acc ->
           acc
 
-        {:ok, valid_runner_option_pair}, {:ok, valid_runner_options_pairs} ->
-          {:ok, [valid_runner_option_pair | valid_runner_options_pairs]}
+        {:ok, valid_runner_option_pair}, {:ok, valid_runner_options_pairs} -> #当前的valid_runner_option_pair通过，且valid_runner_options_pairs之前的也是通过
+          {:ok, [valid_runner_option_pair | valid_runner_options_pairs]} # valid_runner_option_pair 添加到valid_runner_options_pairs头部
 
+        # 当前成功，之前的失败也返回失败
         {:ok, _}, {:error, _} = error ->
           error
 
+        # 当前失败，历史成功，也返回失败
         {:error, reason}, {:ok, _} ->
           {:error, [reason]}
 
+        # 当前历史都失败，返回所有错误
         {:error, reason}, {:error, reasons} ->
           {:error, [reason | reasons]}
       end)
@@ -233,6 +242,7 @@ defmodule Explorer.Chain.Import do
   defp validate_runner_options(runner, options) when is_map(options) do
     option_key = runner.option_key()
 
+    # 取runner中所有函数组成map，看map是否有:runner_specific_options 对应值？
     runner_specific_options =
       if Map.has_key?(Enum.into(runner.__info__(:functions), %{}), :runner_specific_options) do
         runner.runner_specific_options()
@@ -240,6 +250,7 @@ defmodule Explorer.Chain.Import do
         []
       end
 
+    # 通过schema中校验必须参数？
     case {validate_runner_option_params_required(option_key, options),
           validate_runner_options_known(option_key, options, runner_specific_options)} do
       {:ignore, :ok} -> :ignore
@@ -279,13 +290,16 @@ defmodule Explorer.Chain.Import do
   defp runner_to_changes_list_to_multis(runner_to_changes_list, options)
        when is_map(runner_to_changes_list) and is_map(options) do
     timestamps = timestamps()
-    full_options = Map.put(options, :timestamps, timestamps)
+    full_options = Map.put(options, :timestamps, timestamps) #获取时间戳添加到options中
 
+    # 所有阶段生成的多个事务（multis）以及最终的运行器和更改列表映射
     {multis, final_runner_to_changes_list} =
+      # 对@stages 进行迭代
       Enum.flat_map_reduce(@stages, runner_to_changes_list, fn stage, remaining_runner_to_changes_list ->
         stage.multis(remaining_runner_to_changes_list, full_options)
       end)
 
+    # final_runner_to_changes_list 不为空，抛出异常
     unless Enum.empty?(final_runner_to_changes_list) do
       raise ArgumentError,
             "No stages consumed the following runners: #{final_runner_to_changes_list |> Map.keys() |> inspect()}"
@@ -320,7 +334,7 @@ defmodule Explorer.Chain.Import do
   defp insert_runner_to_changes_list(runner_to_changes_list, options) when is_map(runner_to_changes_list) do
     runner_to_changes_list
     |> runner_to_changes_list_to_multis(options)
-    |> logged_import(options)
+    |> logged_import(options) # 事件导入
     |> case do
       {:ok, result} ->
         {:ok, result}
@@ -329,15 +343,17 @@ defmodule Explorer.Chain.Import do
         remove_consensus_from_partially_imported_blocks(options)
         error
     end
-  rescue
+  rescue # 导入处理
     exception ->
       remove_consensus_from_partially_imported_blocks(options)
       reraise exception, __STACKTRACE__
   end
 
+  # multis包含多个事务的列表  options包含导入操作的选项
   defp logged_import(multis, options) when is_list(multis) and is_map(options) do
-    import_id = :erlang.unique_integer([:positive])
+    import_id = :erlang.unique_integer([:positive]) # 生成唯一正整数，导入操作标识
 
+    # 日志中添加元数据，导入事务前记录导入操作的元数据
     Explorer.Logger.metadata(fn -> import_transactions(multis, options) end, import_id: import_id)
   end
 
@@ -356,6 +372,7 @@ defmodule Explorer.Chain.Import do
       end
   end
 
+  #执行带有日志记录的事务
   defp import_transaction(multi, options) when is_map(options) do
     Repo.logged_transaction(multi, timeout: Map.get(options, :timeout, @transaction_timeout))
   end
